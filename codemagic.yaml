@@ -1,34 +1,34 @@
 workflows:
   ios-unsigned-build:
-    name: Build Functional iOS App
+    name: Build Functional NetMirror App
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
       xcode: latest
     scripts:
-      - name: Compile Swift Code and Package IPA
+      - name: Build NetMirror App
         script: |
-          echo "Setting up app bundle structure..."
+          echo "Setting up app directory..."
           mkdir -p build_output/Payload/NetMirror.app
           
-          echo "Compiling Swift source code for iOS..."
-          # Compile ViewController.swift into a real iOS executable binary using the iPhoneOS SDK
+          echo "Compiling Swift files..."
           xcrun swiftc -target arm64-apple-ios14.0 \
             -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
+            -framework UIKit -framework WebKit -framework Foundation \
             -o build_output/Payload/NetMirror.app/NetMirror \
             ViewController.swift
             
-          echo "Copying Info.plist..."
+          echo "Writing Info.plist..."
           cp Info.plist build_output/Payload/NetMirror.app/Info.plist
           
-          echo "Signing application bundle ad-hoc..."
+          echo "Signing app bundle..."
           codesign --force --sign - build_output/Payload/NetMirror.app
           
-          echo "Packaging into .ipa file..."
+          echo "Zipping into IPA..."
           cd build_output
           zip -r NetMirror.ipa Payload
           cd ..
           
-          echo "Functional IPA built successfully!"
+          echo "Build finished successfully!"
     artifacts:
       - build_output/*.ipa
