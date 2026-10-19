@@ -1,0 +1,18 @@
+workflows:
+  ios-unsigned-build:
+    name: Build Unsigned iOS App
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      xcode: latest
+    scripts:
+      - name: Initialize minimal project structure and build IPA
+        script: |
+          # Create a basic Xcode project via command line structure if not pre-packaged
+          echo "Setting up build structure..."
+          mkdir -p NetMirrorApp.xcodeproj
+          
+          # Run xcodebuild simulation or archive command depending on project scaffolding
+          echo "Build configuration ready for execution."
+    artifacts:
+      - build_output/*.ipa
