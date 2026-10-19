@@ -1,29 +1,34 @@
 workflows:
   ios-unsigned-build:
-    name: Build Unsigned iOS App
+    name: Build Functional iOS App
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
       xcode: latest
     scripts:
-      - name: Build and Package Unsigned IPA
+      - name: Compile Swift Code and Package IPA
         script: |
-          # Create a build output directory
-          mkdir -p build_output/Payload
+          echo "Setting up app bundle structure..."
+          mkdir -p build_output/Payload/NetMirror.app
           
-          # Compile the Swift file into an executable binary using swiftc for iOS simulator/device structure
-          # Or create a dummy app payload structure for packaging
-          mkdir -p NetMirror.app
-          cp Info.plist NetMirror.app/Info.plist
+          echo "Compiling Swift source code for iOS..."
+          # Compile ViewController.swift into a real iOS executable binary using the iPhoneOS SDK
+          xcrun swiftc -target arm64-apple-ios14.0 \
+            -sdk $(xcrun --sdk iphoneos --show-sdk-path) \
+            -o build_output/Payload/NetMirror.app/NetMirror \
+            ViewController.swift
+            
+          echo "Copying Info.plist..."
+          cp Info.plist build_output/Payload/NetMirror.app/Info.plist
           
-          # Move app bundle into Payload directory
-          mv NetMirror.app build_output/Payload/
+          echo "Signing application bundle ad-hoc..."
+          codesign --force --sign - build_output/Payload/NetMirror.app
           
-          # Compress into a valid .ipa file
+          echo "Packaging into .ipa file..."
           cd build_output
           zip -r NetMirror.ipa Payload
           cd ..
           
-          echo "IPA packaging complete!"
+          echo "Functional IPA built successfully!"
     artifacts:
       - build_output/*.ipa
